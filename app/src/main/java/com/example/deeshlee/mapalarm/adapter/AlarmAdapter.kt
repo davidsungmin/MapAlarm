@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.example.deeshlee.mapalarm.ListActivity
 import com.example.deeshlee.mapalarm.MainActivity
 import java.util.*
 import com.example.deeshlee.mapalarm.R
@@ -37,7 +38,7 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val alarm = alarms[position]
 
-        holder.tvAddress.text = alarm.alarmAddress.toString()
+        holder.tvAddress.text = alarm.alarmAddress
         holder.tvNotes.text = alarm.alarmNote
 
         holder.fabDelete.setOnClickListener {
@@ -63,7 +64,7 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
 
             alarms.removeAt(adapterPosition)
 
-            (context as MainActivity).runOnUiThread {
+            (context as ListActivity).runOnUiThread {
                 notifyItemRemoved(adapterPosition)
             }
         }.start()

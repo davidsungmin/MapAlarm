@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.helper.ItemTouchHelper
 import com.example.deeshlee.mapalarm.adapter.AlarmAdapter
+import com.example.deeshlee.mapalarm.data.Alarm
 import com.example.deeshlee.mapalarm.data.AppDatabase
 import com.example.deeshlee.mapalarm.touch.ItemTouchHelperCallback
 import kotlinx.android.synthetic.main.activity_list.*
@@ -43,5 +44,7 @@ class ListActivity : AppCompatActivity() {
             }
         }.start()
     }
+
+
 }
 
