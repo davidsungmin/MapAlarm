@@ -28,6 +28,9 @@ class ListActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
 
+        fabDeleteAll.setOnClickListener {
+            alarmAdapter.deleteAllAlarms()
+        }
         initRecyclerView()
 
         markersToDelete = ArrayList()

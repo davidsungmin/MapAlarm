@@ -59,8 +59,8 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
 
 
     private fun deleteAlarm(adapterPosition: Int) {
-        (context as ListActivity).addMarkerToDelete(alarms[adapterPosition].markerId)
         Thread {
+            (context as ListActivity).addMarkerToDelete(alarms[adapterPosition].markerId)
             AppDatabase.getInstance(
                     context).alarmDao().deleteAlarm(alarms[adapterPosition])
 
@@ -78,12 +78,13 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
         val size = alarms.size - 1
         Thread {
             for (i in 0..size){
+                (context as ListActivity).addMarkerToDelete(alarms[0].markerId)
                 AppDatabase.getInstance(
                         context).alarmDao().deleteAlarm(alarms[0])
 
                 alarms.removeAt(0)
 
-                (context as MainActivity).runOnUiThread {
+                context.runOnUiThread {
                     notifyItemRemoved(0)
                 }
             }
