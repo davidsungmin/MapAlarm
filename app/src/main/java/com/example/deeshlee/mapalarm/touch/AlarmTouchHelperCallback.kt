@@ -1,5 +1,4 @@
-package com.example.mitchellpatton.mapalarm.touch
-
+package com.example.deeshlee.mapalarm.touch
 
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper

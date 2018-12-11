@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-
     <fragment
         android:layout_width="match_parent"
         android:layout_height="400dp"
@@ -14,8 +13,8 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         map:cameraZoom = "11"/>
 
-
     <LinearLayout
+        android:id="@+id/linearButtonLayout"
         android:layout_marginTop="8dp"
         android:gravity="center_horizontal"
         android:layout_width="match_parent"
@@ -29,21 +28,35 @@
 
         <Button
             android:id="@+id/btnConfirm"
-            android:text="Confirm Alarm"
+            android:text="Confirm"
+            android:layout_height="wrap_content"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_marginRight="16dp"/>
+
+        <Button
+            android:id="@+id/btnList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Show list of alarms"/>
 
     </LinearLayout>
 
     <TextView
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="8dp"
         android:id="@+id/tvAddress"
-        android:text="Current address: Kerulet VII Rozsa"
+        android:text="Current Address is: Rozsa Utca 16"
+        android:layout_marginTop="8dp"
+        android:layout_gravity="center_horizontal"
         android:textSize="20sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
+    <EditText
+        android:id="@+id/etNote"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="Add notes for this pin"
+        android:visibility="invisible"
+        android:layout_gravity="center_horizontal"/>
 
 
 </LinearLayout>

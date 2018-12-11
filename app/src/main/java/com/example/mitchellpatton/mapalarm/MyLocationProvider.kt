@@ -9,20 +9,15 @@ import com.google.android.gms.location.*
 class MyLocationProvider(context: Context,
                          private val onNewLocationAvailable: OnNewLocationAvailable)  {
 
-    //represents location monitoring
     private val fusedLocationClient: FusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(context)
 
-
     private var locationCallback: LocationCallback = object : LocationCallback() {
-        //locationResult.lastLocation is the current location
-        //contains .lat .lng info
         override fun onLocationResult(locationResult: LocationResult) {
             super.onLocationResult(locationResult)
             onNewLocationAvailable.onNewLocation(locationResult.lastLocation)
         }
     }
-
 
     interface OnNewLocationAvailable {
         fun onNewLocation(location: Location)
@@ -41,7 +36,6 @@ class MyLocationProvider(context: Context,
     }
 
     @Throws(SecurityException::class)
-    //just removes location updates
     fun stopLocationMonitoring() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }

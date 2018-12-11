@@ -1,4 +1,4 @@
-package com.example.mitchellpatton.mapalarm.data
+package com.example.deeshlee.mapalarm.data
 
 import android.arch.persistence.room.Database
 import android.arch.persistence.room.Room

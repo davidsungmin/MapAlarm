@@ -1,11 +1,18 @@
 package com.example.mitchellpatton.mapalarm
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.location.Address
+import android.location.Geocoder
 import android.location.Location
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import com.example.mitchellpatton.mapalarm.adapter.AlarmAdapter
+import com.example.mitchellpatton.mapalarm.data.Alarm
+import com.example.mitchellpatton.mapalarm.data.AppDatabase
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 import com.google.android.gms.common.api.Status
@@ -15,22 +22,23 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.livinglifetechway.quickpermissions.annotations.WithPermissions
 import kotlinx.android.synthetic.main.activity_main.*
 import com.google.android.gms.location.places.Place
 import com.google.android.gms.location.places.ui.*
-import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.*
+import java.util.*
 
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback, MyLocationProvider.OnNewLocationAvailable{
 
-
     private lateinit var mMap: GoogleMap
     private lateinit var bluePin: BitmapDescriptor
     private lateinit var redPin: BitmapDescriptor
+
+    private lateinit var clickedPin: Marker
+    private lateinit var alarmAdapter: AlarmAdapter
+
     private val PLACE_PICKER_REQUEST = 1001
 
 
@@ -49,7 +57,23 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, MyLocationProvider
             loadPlaceAutoComplete()
         }
 
+        btnConfirm.setOnClickListener{
+            handleAlarmCreate(this)
+        }
 
+        Thread{
+            val alarmList = AppDatabase.getInstance(
+                    this@MainActivity
+            ).alarmDao().findAllAlarms()
+
+            alarmAdapter = AlarmAdapter(this@MainActivity, alarmList)
+        }.start()
+
+        btnList.setOnClickListener{
+            val intent = Intent()
+            intent.setClass(MainActivity@this, ListActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -101,7 +125,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, MyLocationProvider
     }
 
     override fun onNewLocation(location: Location) {
-        tvAddress.text = "Loc: ${location.latitude}, ${location.longitude}"
+//        tvAddress.text = "Loc: ${location.latitude}, ${location.longitude}"
     }
 
     //Location stuff done
@@ -115,8 +139,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, MyLocationProvider
 
         // Add a marker in Hungary and move the camera
         val hungary = LatLng(47.4979, 19.0402)
+        clickedPin = mMap.addMarker(MarkerOptions().position(hungary).icon(bluePin).title("Unconfirmed"))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(hungary))
 
+        mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isZoomControlsEnabled = true
 
 
@@ -124,9 +150,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, MyLocationProvider
         mMap.setOnMapClickListener{
             val markerOpt = MarkerOptions()
                     .position(it)
-                    .title("Set alarm ${it.latitude}, ${it.longitude}")
+                    .title("Unconfirmed")
                     .icon(bluePin)
             val marker = mMap.addMarker(markerOpt)
+
+            if (clickedPin.title == "Unconfirmed"){
+                clickedPin.remove()
+            }
+
+            clickedPin = marker
+
+            etNote.visibility = View.INVISIBLE
+
             marker.isDraggable = true
 
             //moves the camera slowly
@@ -141,15 +176,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, MyLocationProvider
         //not indivdually
         //it represents the marker that was clicked
         mMap.setOnMarkerClickListener {
-            it.setIcon(redPin)
             //it.title
             //it.remove()
             //it.position
             //it.setIcon()
 
-            //probably call AlarmActivity
+            if (clickedPin.title == "Unconfirmed" && clickedPin!= it){
+                clickedPin.remove()
+            }
+
+            clickedPin = it
+
+            etNote.visibility = View.VISIBLE
             true
-            //false means "now do the default info window stuff"
         }
 
     }
@@ -165,6 +204,57 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback, MyLocationProvider
             e.printStackTrace()
         } catch (e: GooglePlayServicesNotAvailableException) {
             e.printStackTrace()
+        }
+    }
+
+    private fun alarmCreated(alarm: Alarm) {
+        Thread {
+            val alarmId = AppDatabase.getInstance(
+                    this@MainActivity).alarmDao().insertAlarm(alarm)
+
+            alarm.alarmId = alarmId
+
+            runOnUiThread {
+                alarmAdapter.addAlarm(alarm)
+            }
+        }.start()
+    }
+
+    private fun handleAlarmCreate(context: Context) {
+        var errorMessage = ""
+
+        if (clickedPin == null){
+            Toast.makeText(this,"Please select a marker", Toast.LENGTH_LONG).show()
+        } else {
+            val alarmLat = clickedPin.position.latitude
+            val alarmLong = clickedPin.position.longitude
+            var alarmAddress = ""
+            val gc = Geocoder(this, Locale.getDefault())
+            val addrs: List<Address>? =
+                    gc.getFromLocation(alarmLat, alarmLong, 1)
+
+            if (addrs!!.isEmpty()) {
+                errorMessage = "No Address found"
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+                alarmAddress = "None found"
+
+            } else {
+                alarmAddress = addrs[0].getAddressLine(0)
+            }
+            val alarmNote = etNote.text.toString()
+
+            alarmCreated(
+                    Alarm(
+                            null,
+                            alarmLat,
+                            alarmLong,
+                            alarmAddress,
+                            alarmNote
+                    )
+            )
+
+            clickedPin.setIcon(redPin)
+            clickedPin.title = "Confirmed"
         }
     }
 
