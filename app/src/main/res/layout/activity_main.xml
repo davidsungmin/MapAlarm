@@ -35,6 +35,12 @@
             android:layout_height="wrap_content"
             android:text="Show list of alarms"/>
 
+        <Button
+            android:id="@+id/btnAlarm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Launch Alarm"/>
+
     </LinearLayout>
 
     <TextView

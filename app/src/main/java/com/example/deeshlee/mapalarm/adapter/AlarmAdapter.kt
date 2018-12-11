@@ -67,6 +67,7 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
             (context as ListActivity).runOnUiThread {
                 notifyItemRemoved(adapterPosition)
             }
+
         }.start()
 
     }

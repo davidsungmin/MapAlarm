@@ -1,10 +1,12 @@
 package com.example.deeshlee.mapalarm
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.location.LocationManager
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -31,10 +33,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private lateinit var clickedPin: Marker
 
-
     private lateinit var alarmAdapter: AlarmAdapter
-
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,29 +61,19 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             startActivity(intent)
         }
 
+        btnAlarm.setOnClickListener{
+            val intent = Intent()
+            intent.setClass(MainActivity@this, AlarmActivity::class.java)
+           // val latLng = arrayOf(clickedPin.position.latitude, clickedPin.position.longitude)
+            intent.putExtra("lat", clickedPin.position.latitude)
+            intent.putExtra("lng", clickedPin.position.longitude)
+            startActivity(intent)
+        }
 
 
-
-//        btnNormal.setOnClickListener {
-//            mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
-//
-//            mMap.clear()
-//        }
-//        btnSatellite.setOnClickListener {
-//            mMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
-//
-//            val cameraPosition = CameraPosition.Builder()
-//                    .target(LatLng(47.0, 19.0))
-//                    .zoom(17f)
-//                    .bearing(90f)
-//                    .tilt(30f)
-//                    .build()
-//            mMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-//                    cameraPosition))
-//
-//
-//        }
     }
+
+
 
     private lateinit var myLocationProvider: MyLocationProvider
 
@@ -108,25 +97,29 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         myLocationProvider.stopLocationMonitoring()
     }
 
+    var prevPosition: Location? = null
+
     override fun onNewLocation(location: Location) {
-//        tvData.text =
-//                "Loc: ${location.latitude}, ${location.longitude}"
+        Toast.makeText(this,"Loc: ${location.latitude}, ${location.longitude}",Toast.LENGTH_LONG).show()
+
+        var dist = prevPosition?.distanceTo(location)
+        Toast.makeText(this, "Distance: $dist (m)", Toast.LENGTH_LONG).show()
+
+        prevPosition = location
     }
 
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        val marker = LatLng(47.0, 19.0)
+        val marker = LatLng(47.562312, 19.054507)
         mMap.addMarker(MarkerOptions().position(marker).title("Marker in Hungary"))
         mMap.moveCamera(CameraUpdateFactory.newLatLng(marker))
 
         mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
 
-
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isZoomControlsEnabled = true
-
 
         mMap.setOnMapClickListener {
             val markerOpt = MarkerOptions().
@@ -137,7 +130,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             etNote.visibility = View.INVISIBLE
 
             marker.isDraggable = true
-
 
             mMap.animateCamera(CameraUpdateFactory.newLatLng(it))
         }
@@ -193,6 +185,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
         val alarmNote = etNote.text.toString()
 
+
         alarmCreated(
                 Alarm(
                         null,
@@ -203,6 +196,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 )
         )
     }
+
+
+
+
 
 }
 
