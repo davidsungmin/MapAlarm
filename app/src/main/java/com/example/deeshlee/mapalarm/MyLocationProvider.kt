@@ -5,6 +5,7 @@ import android.location.Location
 import android.os.Looper
 import com.google.android.gms.location.*
 
+
 class MyLocationProvider(context: Context,
                          private val onNewLocationAvailable: OnNewLocationAvailable)  {
 

@@ -1,39 +1,46 @@
 package com.example.deeshlee.mapalarm
 
-import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
+import android.location.Location
+import android.support.v7.app.AppCompatActivity
+import android.view.View
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException
+import com.google.android.gms.common.GooglePlayServicesRepairableException
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.android.synthetic.main.activity_main.*
+
+import android.content.Context
 import android.location.Address
 import android.location.Geocoder
-import android.location.Location
-import android.location.LocationManager
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
-import android.view.View
 import android.widget.Toast
 import com.example.deeshlee.mapalarm.adapter.AlarmAdapter
 import com.example.deeshlee.mapalarm.data.Alarm
 import com.example.deeshlee.mapalarm.data.AppDatabase
+import com.example.deeshlee.mapalarm.R
+import com.google.android.gms.location.places.ui.PlaceAutocomplete
 
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.livinglifetechway.k4kotlin.TAG
 import com.livinglifetechway.quickpermissions.annotations.WithPermissions
-import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         MyLocationProvider.OnNewLocationAvailable{
 
     private lateinit var mMap: GoogleMap
+    private lateinit var bluePin: BitmapDescriptor
+    private lateinit var redPin: BitmapDescriptor
 
     private lateinit var clickedPin: Marker
-
     private lateinit var alarmAdapter: AlarmAdapter
+
+    private val PLACE_PICKER_REQUEST = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +49,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        btnSearch.setOnClickListener{
+            loadPlaceAutoComplete()
+        }
 
         btnConfirm.setOnClickListener{
             handleAlarmCreate(this)
@@ -69,8 +80,28 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             intent.putExtra("lng", clickedPin.position.longitude)
             startActivity(intent)
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == PLACE_PICKER_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                val place = PlaceAutocomplete.getPlace(this, data)
+                var addressText = place.name.toString()
+                addressText += "\n" + place.address.toString()
 
 
+                val markerOpt = MarkerOptions()
+                        .position(place.latLng)
+                        .draggable(true)
+                        .icon(bluePin)
+                mMap.addMarker(markerOpt)
+
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(place.latLng))
+
+            }
+        }
     }
 
 
@@ -97,55 +128,85 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         myLocationProvider.stopLocationMonitoring()
     }
 
-    var prevPosition: Location? = null
 
     override fun onNewLocation(location: Location) {
-        Toast.makeText(this,"Loc: ${location.latitude}, ${location.longitude}",Toast.LENGTH_LONG).show()
-
-        var dist = prevPosition?.distanceTo(location)
-        Toast.makeText(this, "Distance: $dist (m)", Toast.LENGTH_LONG).show()
-
-        prevPosition = location
+//        tvAddress.text = "Loc: ${location.latitude}, ${location.longitude}"
     }
 
 
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        val marker = LatLng(47.562312, 19.054507)
-        mMap.addMarker(MarkerOptions().position(marker).title("Marker in Hungary"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(marker))
+        bluePin = BitmapDescriptorFactory.fromResource(R.drawable.bluepin)
+        redPin = BitmapDescriptorFactory.fromResource(R.drawable.redpin)
 
-        mMap.mapType = GoogleMap.MAP_TYPE_NORMAL
+        // Add a marker in Hungary and move the camera
+        val hungary = LatLng(47.4979, 19.0402)
+        clickedPin = mMap.addMarker(MarkerOptions().position(hungary).icon(bluePin).title("Unconfirmed"))
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(hungary))
 
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isZoomControlsEnabled = true
 
-        mMap.setOnMapClickListener {
-            val markerOpt = MarkerOptions().
-                    position(it).
-                    title("My marker ${it.latitude}, ${it.longitude}")
+
+        //"it" represents lat long where we clicked
+        mMap.setOnMapClickListener{
+            val markerOpt = MarkerOptions()
+                    .position(it)
+                    .title("Unconfirmed")
+                    .icon(bluePin)
             val marker = mMap.addMarker(markerOpt)
+
+            if (clickedPin.title == "Unconfirmed"){
+                clickedPin.remove()
+            }
+
+            clickedPin = marker
 
             etNote.visibility = View.INVISIBLE
 
             marker.isDraggable = true
 
+            //moves the camera slowly
+            //more camera stuff in the slides/ dem
             mMap.animateCamera(CameraUpdateFactory.newLatLng(it))
+            //mMap.clear()
+
         }
 
 
+        //must be declared globally
+        //not indivdually
+        //it represents the marker that was clicked
         mMap.setOnMarkerClickListener {
-            Toast.makeText(this@MainActivity, it.title,
-                    Toast.LENGTH_LONG).show()
+            //it.title
+            //it.remove()
+            //it.position
+            //it.setIcon()
+
+            if (clickedPin.title == "Unconfirmed" && clickedPin!= it){
+                clickedPin.remove()
+            }
 
             clickedPin = it
 
             etNote.visibility = View.VISIBLE
-
             true
         }
 
+    }
+
+    private fun loadPlaceAutoComplete() {
+        val myIntent = PlaceAutocomplete.IntentBuilder(PlaceAutocomplete.MODE_FULLSCREEN)
+                .build(this@MainActivity)
+
+        try {
+            startActivityForResult(myIntent, PLACE_PICKER_REQUEST)
+        } catch (e: GooglePlayServicesRepairableException) {
+            e.printStackTrace()
+        } catch (e: GooglePlayServicesNotAvailableException) {
+            e.printStackTrace()
+        }
     }
 
 
@@ -202,4 +263,3 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
 }
-

@@ -1,4 +1,4 @@
-package com.example.deeshlee.mapalarm.data
+package com.example.mitchellpatton.mapalarm.data
 
 import android.arch.persistence.room.ColumnInfo
 import android.arch.persistence.room.Entity
@@ -12,5 +12,4 @@ data class Alarm(
         @ColumnInfo(name = "longitude") var alarmLong: Double,
         @ColumnInfo(name = "address") var alarmAddress: String,
         @ColumnInfo(name = "note") var alarmNote: String
-
 ) : Serializable

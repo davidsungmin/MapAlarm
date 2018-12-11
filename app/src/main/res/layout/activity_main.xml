@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -12,32 +11,42 @@
         android:layout_height="400dp"
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
-        />
+        map:cameraZoom = "11"/>
 
     <LinearLayout
         android:id="@+id/linearButtonLayout"
+        android:layout_marginTop="8dp"
+        android:weightSum="4"
+        android:gravity="center_horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_horizontal">
+        android:layout_height="wrap_content">
 
+        <Button
+            android:id="@+id/btnSearch"
+            android:text="Search by Address"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
 
         <Button
             android:id="@+id/btnConfirm"
             android:text="Confirm"
             android:layout_height="wrap_content"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_marginRight="16dp"/>
 
         <Button
             android:id="@+id/btnList"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="Show list of alarms"/>
 
         <Button
             android:id="@+id/btnAlarm"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="Launch Alarm"/>
 
