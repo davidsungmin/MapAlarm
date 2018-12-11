@@ -1,5 +1,6 @@
 package com.example.deeshlee.mapalarm
 
+import android.app.Activity
 import android.content.Intent
 import android.location.Location
 import android.support.v7.app.AppCompatActivity
@@ -29,6 +30,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.livinglifetechway.quickpermissions.annotations.WithPermissions
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         MyLocationProvider.OnNewLocationAvailable{
@@ -41,6 +43,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var alarmAdapter: AlarmAdapter
 
     private val PLACE_PICKER_REQUEST = 1001
+    private val LIST_ACTIVITY_REQUEST = 1002
+
+    private lateinit var markerList: MutableList<Marker>
+
+    private lateinit var alarmList: List<Alarm>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,17 +66,18 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
 
         Thread{
-        val alarmList = AppDatabase.getInstance(
+        alarmList = AppDatabase.getInstance(
                 this@MainActivity
         ).alarmDao().findAllAlarms()
 
-        alarmAdapter = AlarmAdapter(this@MainActivity, alarmList)
+
         }.start()
+
 
         btnList.setOnClickListener{
             val intent = Intent()
             intent.setClass(MainActivity@this, ListActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, LIST_ACTIVITY_REQUEST)
         }
 
         btnAlarm.setOnClickListener{
@@ -82,8 +90,31 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
+    fun initMarkers(alarmList: List<Alarm>): MutableList<Marker>{
+        var markerList = mutableListOf<Marker>()
+        for (alarm in alarmList){
+            val markerOpt = MarkerOptions()
+                    .position(LatLng(alarm.alarmLat,alarm.alarmLong))
+                    .draggable(true)
+                    .icon(redPin)
+            val newMarker = mMap.addMarker(markerOpt)
+            newMarker.tag = alarm.markerId
+            markerList.add(newMarker)
+        }
+        return markerList
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == LIST_ACTIVITY_REQUEST){
+            if (resultCode == RESULT_OK){
+                val markersToDelete = data!!.getStringArrayListExtra("markersToDelete")
+                for (markerId in markersToDelete){
+                    delete_marker(markerId)
+                }
+            }
+        }
 
         if (requestCode == PLACE_PICKER_REQUEST) {
             if (resultCode == RESULT_OK) {
@@ -103,7 +134,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             }
         }
     }
-
 
 
     private lateinit var myLocationProvider: MyLocationProvider
@@ -148,6 +178,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isZoomControlsEnabled = true
 
+        markerList = initMarkers(alarmList)
+
+        alarmAdapter = AlarmAdapter(this@MainActivity, alarmList)
+
 
         //"it" represents lat long where we clicked
         mMap.setOnMapClickListener{
@@ -160,6 +194,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             if (clickedPin.title == "Unconfirmed"){
                 clickedPin.remove()
             }
+
 
             clickedPin = marker
 
@@ -229,33 +264,43 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         if (clickedPin == null){
             Toast.makeText(this,"Please select a marker", Toast.LENGTH_LONG).show()
         }
-        val alarmLat = clickedPin.position.latitude
-        val alarmLong = clickedPin.position.longitude
-        var alarmAddress = ""
-        val gc = Geocoder(this, Locale.getDefault())
-        val addrs: List<Address>? =
-                gc.getFromLocation(alarmLat, alarmLong, 1)
+        else {
+            val alarmLat = clickedPin.position.latitude
+            val alarmLong = clickedPin.position.longitude
+            var alarmAddress = ""
+            val gc = Geocoder(this, Locale.getDefault())
+            val addrs: List<Address>? =
+                    gc.getFromLocation(alarmLat, alarmLong, 1)
 
-        if (addrs!!.isEmpty()) {
-            errorMessage = "No Address found"
-            Toast.makeText(this,errorMessage,Toast.LENGTH_LONG ).show()
-            alarmAddress = "None found"
+            if (addrs!!.isEmpty()) {
+                errorMessage = "No Address found"
+                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
+                alarmAddress = "None found"
 
-        } else {
-            alarmAddress = addrs[0].getAddressLine(0)
+            } else {
+                alarmAddress = addrs[0].getAddressLine(0)
+            }
+            val alarmNote = etNote.text.toString()
+            val newAlarm = Alarm(null, alarmLat, alarmLong, alarmAddress, alarmNote, clickedPin.id)
+            clickedPin.tag = clickedPin.id
+            markerList.add(clickedPin)
+
+            alarmCreated(
+                    newAlarm
+            )
+            clickedPin.setIcon(redPin)
+            clickedPin.title = "Confirmed"
         }
-        val alarmNote = etNote.text.toString()
+    }
 
 
-        alarmCreated(
-                Alarm(
-                        null,
-                        alarmLat,
-                        alarmLong,
-                        alarmAddress,
-                        alarmNote
-                )
-        )
+    fun delete_marker(markerId: String){
+        var index = 0
+        while(markerId != markerList[index].tag){
+            index++
+        }
+        markerList[index].remove()
+        markerList.removeAt(index)
     }
 
 

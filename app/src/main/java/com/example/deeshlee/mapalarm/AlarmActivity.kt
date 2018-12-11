@@ -8,8 +8,10 @@ import android.graphics.Color
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.annotation.RequiresApi
 import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_alarm.*
@@ -26,6 +28,7 @@ class AlarmActivity : AppCompatActivity() {
     private lateinit var notificationManager: NotificationManager
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_alarm)
@@ -87,6 +90,7 @@ class AlarmActivity : AppCompatActivity() {
     }
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun sendNotification() {
 
         val channelID = "com.example.deeshlee.mapalarm"
@@ -102,6 +106,7 @@ class AlarmActivity : AppCompatActivity() {
         notificationManager.notify(100,notification)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel(id: String, name: String,
                                           description: String) {
 

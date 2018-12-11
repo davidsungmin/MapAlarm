@@ -12,6 +12,7 @@ import com.example.deeshlee.mapalarm.R
 import com.example.deeshlee.mapalarm.data.AppDatabase
 import com.example.deeshlee.mapalarm.data.Alarm
 import com.example.deeshlee.mapalarm.touch.ItemTouchHelperAdapter
+import com.google.android.gms.maps.model.Marker
 import kotlinx.android.synthetic.main.alarm_row.view.*
 
 class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
@@ -58,19 +59,20 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
 
 
     private fun deleteAlarm(adapterPosition: Int) {
+        (context as ListActivity).addMarkerToDelete(alarms[adapterPosition].markerId)
         Thread {
             AppDatabase.getInstance(
                     context).alarmDao().deleteAlarm(alarms[adapterPosition])
 
             alarms.removeAt(adapterPosition)
 
-            (context as ListActivity).runOnUiThread {
+            context.runOnUiThread {
                 notifyItemRemoved(adapterPosition)
             }
-
         }.start()
 
     }
+
 
     fun deleteAllAlarms() {
         val size = alarms.size - 1
