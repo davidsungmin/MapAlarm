@@ -45,8 +45,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".ListActivity" />
-
-        <activity android:name=".AlarmActivity"></activity>
+        <activity android:name=".AlarmActivity" />
+        <service android:name=".GeofenceTransitionsIntentService"/>
     </application>
 
 </manifest>

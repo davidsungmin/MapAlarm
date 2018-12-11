@@ -1,6 +1,7 @@
 package com.example.deeshlee.mapalarm
 
-import android.app.Activity
+import android.Manifest
+import android.app.PendingIntent
 import android.content.Intent
 import android.location.Location
 import android.support.v7.app.AppCompatActivity
@@ -14,23 +15,28 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 
-import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
+import android.util.Log
 import android.widget.Toast
 import com.example.deeshlee.mapalarm.adapter.AlarmAdapter
 import com.example.deeshlee.mapalarm.data.Alarm
 import com.example.deeshlee.mapalarm.data.AppDatabase
-import com.example.deeshlee.mapalarm.R
+import com.google.android.gms.location.Geofence
+import com.google.android.gms.location.GeofencingClient
+import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.ui.PlaceAutocomplete
 
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.livinglifetechway.k4kotlin.TAG
 import com.livinglifetechway.quickpermissions.annotations.WithPermissions
 import java.util.*
-import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         MyLocationProvider.OnNewLocationAvailable{
@@ -49,6 +55,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private lateinit var alarmList: List<Alarm>
 
+    private lateinit var geofencingClient: GeofencingClient
+    private lateinit var geofenceList: MutableList<Geofence>
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -62,16 +73,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
 
         btnConfirm.setOnClickListener{
-            handleAlarmCreate(this)
+            handleAlarmCreate()
         }
 
-        Thread{
-        alarmList = AppDatabase.getInstance(
-                this@MainActivity
-        ).alarmDao().findAllAlarms()
-
-
-        }.start()
+        bluePin = BitmapDescriptorFactory.fromResource(R.drawable.bluepin)
+        redPin = BitmapDescriptorFactory.fromResource(R.drawable.redpin)
 
 
         btnList.setOnClickListener{
@@ -88,20 +94,31 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             intent.putExtra("lng", clickedPin.position.longitude)
             startActivity(intent)
         }
+
+        geofencingClient = LocationServices.getGeofencingClient(this)
+
+
     }
 
-    fun initMarkers(alarmList: List<Alarm>): MutableList<Marker>{
-        var markerList = mutableListOf<Marker>()
+    fun initGeofences(alarmList: List<Alarm>){
+        geofenceList = mutableListOf()
+        for (alarm in alarmList){
+            addGeofence(alarm)
+        }
+    }
+
+    fun initMarkers(alarmList: List<Alarm>){
+        markerList = mutableListOf()
         for (alarm in alarmList){
             val markerOpt = MarkerOptions()
                     .position(LatLng(alarm.alarmLat,alarm.alarmLong))
                     .draggable(true)
                     .icon(redPin)
+
             val newMarker = mMap.addMarker(markerOpt)
             newMarker.tag = alarm.markerId
             markerList.add(newMarker)
         }
-        return markerList
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -135,7 +152,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
-
     private lateinit var myLocationProvider: MyLocationProvider
 
     override fun onStart() {
@@ -167,8 +183,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
 
-        bluePin = BitmapDescriptorFactory.fromResource(R.drawable.bluepin)
-        redPin = BitmapDescriptorFactory.fromResource(R.drawable.redpin)
+
+        Thread{
+            alarmList = AppDatabase.getInstance(this@MainActivity).alarmDao().findAllAlarms()
+
+            alarmAdapter = AlarmAdapter(this@MainActivity, alarmList)
+
+            initGeofences(alarmList)
+
+            startGeofenceActivity()
+
+            runOnUiThread{
+                initMarkers(alarmList)
+            }
+        }.start()
 
         // Add a marker in Hungary and move the camera
         val hungary = LatLng(47.4979, 19.0402)
@@ -177,10 +205,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isZoomControlsEnabled = true
-
-        markerList = initMarkers(alarmList)
-
-        alarmAdapter = AlarmAdapter(this@MainActivity, alarmList)
 
 
         //"it" represents lat long where we clicked
@@ -258,7 +282,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }.start()
     }
 
-    private fun handleAlarmCreate(context: Context) {
+    private fun handleAlarmCreate() {
         var errorMessage = ""
 
         if (clickedPin == null){
@@ -290,6 +314,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             )
             clickedPin.setIcon(redPin)
             clickedPin.title = "Confirmed"
+
+            addGeofence(newAlarm)
         }
     }
 
@@ -303,8 +329,53 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         markerList.removeAt(index)
     }
 
+    private fun startGeofenceActivity(){
+        val intent = Intent(this, GeofenceTransitionsIntentService::class.java)
+
+        val geofencePendingIntent= PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            if(geofenceList.size != 0) {
+                geofencingClient.addGeofences(getGeofencingRequest(), geofencePendingIntent).run {
+                    addOnSuccessListener {
+
+                    }
+                    addOnFailureListener {
+                        Toast.makeText(this@MainActivity, it.message, Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
+        }
+    }
+
+    val GEOFENCE_RADIUS_IN_METERS = 100F
+
+    private fun addGeofence(alarm: Alarm){
+        geofenceList.add(Geofence.Builder()
+
+                .setRequestId(alarm.markerId)
 
 
+                .setCircularRegion(
+                        alarm.alarmLat,
+                        alarm.alarmLong,
+                        GEOFENCE_RADIUS_IN_METERS
+                )
+                .setExpirationDuration(Geofence.NEVER_EXPIRE)
+
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
+
+                .build())
+
+    }
+
+    private fun getGeofencingRequest(): GeofencingRequest {
+        return GeofencingRequest.Builder().apply {
+            setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+            addGeofences(geofenceList)
+        }.build()
+    }
 
 
 }
