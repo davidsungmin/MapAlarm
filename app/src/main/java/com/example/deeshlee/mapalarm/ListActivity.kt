@@ -9,6 +9,7 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.helper.ItemTouchHelper
 import com.example.deeshlee.mapalarm.adapter.AlarmAdapter
 import com.example.deeshlee.mapalarm.R
+import com.example.deeshlee.mapalarm.adapter.GeofenceAdapter
 import com.example.deeshlee.mapalarm.data.Alarm
 import com.example.deeshlee.mapalarm.data.AppDatabase
 import com.example.deeshlee.mapalarm.touch.ItemTouchHelperCallback
@@ -23,10 +24,14 @@ class ListActivity : AppCompatActivity() {
 
     private lateinit var alarmList: List<Alarm>
 
+    private lateinit var geofenceAdapter: GeofenceAdapter
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
+
 
         fabDeleteAll.setOnClickListener {
             alarmAdapter.deleteAllAlarms()
@@ -48,6 +53,8 @@ class ListActivity : AppCompatActivity() {
 
             alarmAdapter = AlarmAdapter(this@ListActivity, alarmList)
 
+            geofenceAdapter = GeofenceAdapter(this@ListActivity, alarmList)
+
             val layoutManager = LinearLayoutManager(this)
             layoutManager.reverseLayout = true
             layoutManager.stackFromEnd = true
@@ -67,5 +74,17 @@ class ListActivity : AppCompatActivity() {
         markersToDelete.add(markerId)
     }
 
+    fun deleteGeofence(markerId: String){
+        geofenceAdapter.removeGeofence(markerId)
+    }
+
+    fun deleteAllGeofence(alarmList: List<Alarm>){
+        var requestIdList = mutableListOf<String>()
+
+        for (alarm in alarmList) {
+            requestIdList.add(alarm.markerId)
+        }
+
+    }
 
 }
