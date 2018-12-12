@@ -43,30 +43,14 @@
             android:layout_height="wrap_content"
             android:text="Show list of alarms"/>
 
-        <Button
-            android:id="@+id/btnAlarm"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="Launch Alarm"/>
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvAddress"
-        android:text="Current Address is: Rozsa Utca 16"
-        android:layout_marginTop="8dp"
-        android:layout_gravity="center_horizontal"
-        android:textSize="20sp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
 
     <EditText
         android:id="@+id/etNote"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:hint="Add notes for this pin"
-        android:visibility="invisible"
         android:layout_gravity="center_horizontal"/>
 
 

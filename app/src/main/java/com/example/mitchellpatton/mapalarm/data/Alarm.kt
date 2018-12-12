@@ -11,5 +11,7 @@ data class Alarm(
         @ColumnInfo(name = "latitude") var alarmLat: Double,
         @ColumnInfo(name = "longitude") var alarmLong: Double,
         @ColumnInfo(name = "address") var alarmAddress: String,
-        @ColumnInfo(name = "note") var alarmNote: String
+        @ColumnInfo(name = "note") var alarmNote: String,
+        @ColumnInfo(name = "id") var markerId: String
+
 ) : Serializable
