@@ -62,6 +62,7 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
             AppDatabase.getInstance(
                     context).alarmDao().deleteAlarm(alarms[adapterPosition])
 
+            context.deleteGeofence(alarms[adapterPosition].markerId)
             alarms.removeAt(adapterPosition)
 
             context.runOnUiThread {
@@ -75,6 +76,21 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
     fun deleteAllAlarms() {
         alarms.clear()
         notifyDataSetChanged()
+
+//        val size = alarms.size - 1
+//        Thread {
+//            for (i in 0..size){
+//                (context as ListActivity).deleteAllGeofence(alarms)
+//                context.addMarkerToDelete(alarms[0].markerId)
+//                AppDatabase.getInstance(
+//                        context).alarmDao().deleteAlarm(alarms[0])
+//                alarms.removeAt(0)
+//                context.runOnUiThread {
+//                    notifyItemRemoved(0)
+//                }
+//            }
+//        }.start()
+
     }
 
 

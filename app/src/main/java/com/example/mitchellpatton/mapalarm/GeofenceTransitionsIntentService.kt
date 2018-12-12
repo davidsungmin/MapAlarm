@@ -16,7 +16,7 @@ import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 import java.util.*
 
-class GeofenceTransitionsIntentService() : IntentService("name") {
+class GeofenceTransitionsIntentService : IntentService("name") {
 
     private lateinit var triggeredList: List<Geofence>
 
@@ -35,7 +35,8 @@ class GeofenceTransitionsIntentService() : IntentService("name") {
 
         // Test that the reported transition was of interest.
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
-                geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
+                geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT ||
+                geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL){
 
             triggeredList = geofencingEvent.triggeringGeofences
 

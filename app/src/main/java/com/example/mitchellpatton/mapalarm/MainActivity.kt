@@ -12,6 +12,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Toast
+import com.example.mitchellpatton.mapalarm.adapter.GeofenceAdapter
 import com.example.mitchellpatton.mapalarm.adapter.AlarmAdapter
 import com.example.mitchellpatton.mapalarm.data.Alarm
 import com.example.mitchellpatton.mapalarm.data.AppDatabase
@@ -48,8 +49,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private lateinit var alarmList: List<Alarm>
 
-    private lateinit var geofencingClient: GeofencingClient
-    private lateinit var geofenceList: MutableList<Geofence>
+    private lateinit var geofenceAdapter: GeofenceAdapter
 
 
 
@@ -65,6 +65,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             loadPlaceAutoComplete()
         }
 
+        btnConfirm.isEnabled = false
+
         btnConfirm.setOnClickListener{
             handleAlarmCreate()
         }
@@ -76,16 +78,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             startActivityForResult(intent, LIST_ACTIVITY_REQUEST)
         }
 
-        geofencingClient = LocationServices.getGeofencingClient(this)
 
-
-    }
-
-    fun initGeofences(alarmList: List<Alarm>){
-        geofenceList = mutableListOf()
-        for (alarm in alarmList){
-            addGeofence(alarm)
-        }
     }
 
     fun initMarkers(alarmList: List<Alarm>){
@@ -128,6 +121,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 val marker = mMap.addMarker(markerOpt)
 
                 clickedPin = marker
+
+                val newMarker = mMap.addMarker(markerOpt)
+                clickedPin = newMarker
 
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(place.latLng))
 
@@ -174,11 +170,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         Thread{
             alarmList = AppDatabase.getInstance(this@MainActivity).alarmDao().findAllAlarms()
 
+            geofenceAdapter = GeofenceAdapter(this@MainActivity, alarmList)
+
             alarmAdapter = AlarmAdapter(this@MainActivity, alarmList)
-
-            initGeofences(alarmList)
-
-            startGeofenceActivity()
 
             runOnUiThread{
                 initMarkers(alarmList)
@@ -197,6 +191,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         //"it" represents lat long where we clicked
         mMap.setOnMapClickListener{
             btnConfirm.isEnabled = true
+            etNote.setText("")
             val markerOpt = MarkerOptions()
                     .position(it)
                     .title("Unconfirmed")
@@ -247,6 +242,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                 btnConfirm.isEnabled = false
                 Toast.makeText(this@MainActivity, "An alarm already exists at this location", Toast.LENGTH_LONG)
             }
+
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(it.position))
 
             true
         }
@@ -313,9 +310,11 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             clickedPin.setIcon(redPin)
             clickedPin.title = "Confirmed"
 
+            geofenceAdapter.addGeofence(newAlarm)
+
             btnConfirm.isEnabled= false
 
-            addGeofence(newAlarm)
+
         }
     }
 
@@ -329,53 +328,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         markerList.removeAt(index)
     }
 
-    private fun startGeofenceActivity(){
-        val intent = Intent(this, GeofenceTransitionsIntentService::class.java)
 
-        val geofencePendingIntent= PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            if(geofenceList.size != 0) {
-                geofencingClient.addGeofences(getGeofencingRequest(), geofencePendingIntent).run {
-                    addOnSuccessListener {
-
-                    }
-                    addOnFailureListener {
-                        Toast.makeText(this@MainActivity, it.message, Toast.LENGTH_LONG).show()
-                    }
-                }
-            }
-        }
-    }
-
-    val GEOFENCE_RADIUS_IN_METERS = 100F
-
-    private fun addGeofence(alarm: Alarm){
-        geofenceList.add(Geofence.Builder()
-
-                .setRequestId(alarm.markerId)
-
-
-                .setCircularRegion(
-                        alarm.alarmLat,
-                        alarm.alarmLong,
-                        GEOFENCE_RADIUS_IN_METERS
-                )
-                .setExpirationDuration(Geofence.NEVER_EXPIRE)
-
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
-
-                .build())
-
-    }
-
-    private fun getGeofencingRequest(): GeofencingRequest {
-        return GeofencingRequest.Builder().apply {
-            setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-            addGeofences(geofenceList)
-        }.build()
-    }
 
 
 }

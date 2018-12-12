@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.helper.ItemTouchHelper
 import com.example.mitchellpatton.mapalarm.adapter.AlarmAdapter
+import com.example.mitchellpatton.mapalarm.adapter.GeofenceAdapter
 import com.example.mitchellpatton.mapalarm.data.Alarm
 import com.example.mitchellpatton.mapalarm.data.AppDatabase
 import com.example.mitchellpatton.mapalarm.touch.ItemTouchHelperCallback
@@ -20,6 +21,8 @@ class ListActivity : AppCompatActivity() {
     private lateinit var markersToDelete: ArrayList<String>
 
     private lateinit var alarmList: List<Alarm>
+
+    private lateinit var geofenceAdapter: GeofenceAdapter
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,6 +50,8 @@ class ListActivity : AppCompatActivity() {
 
             alarmAdapter = AlarmAdapter(this@ListActivity, alarmList)
 
+            geofenceAdapter = GeofenceAdapter(this@ListActivity, alarmList)
+
             val layoutManager = LinearLayoutManager(this)
             layoutManager.reverseLayout = true
             layoutManager.stackFromEnd = true
@@ -73,6 +78,16 @@ class ListActivity : AppCompatActivity() {
                 alarmAdapter.deleteAllAlarms()
             }
         }.start()
+    }
+
+    fun deleteGeofence(markerId: String){
+        geofenceAdapter.removeGeofence(markerId)
+    }
+    fun deleteAllGeofence(alarmList: List<Alarm>){
+        var requestIdList = mutableListOf<String>()
+        for (alarm in alarmList) {
+            requestIdList.add(alarm.markerId)
+        }
     }
 
 
