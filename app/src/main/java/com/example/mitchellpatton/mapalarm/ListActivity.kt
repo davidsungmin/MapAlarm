@@ -77,15 +77,6 @@ class ListActivity : AppCompatActivity() {
         markersToDelete.addAll(markerIds)
     }
 
-    fun deleteAll(){
-        Thread {
-            AppDatabase.getInstance(this@ListActivity).alarmDao().deleteAll()
-            runOnUiThread {
-                alarmAdapter.deleteAllAlarms()
-            }
-        }.start()
-    }
-
     fun deleteGeofence(markerId: String){
         geofenceAdapter.removeGeofence(markerId)
     }

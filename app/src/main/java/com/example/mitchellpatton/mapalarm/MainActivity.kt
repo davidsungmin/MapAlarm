@@ -118,6 +118,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
                 val markerOpt = MarkerOptions()
                         .position(place.latLng)
+                        .title("Unconfirmed")
                         .draggable(true)
                         .icon(bluePin)
 
