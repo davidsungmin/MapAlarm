@@ -20,6 +20,7 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
     var geofencingClient: GeofencingClient
     val GEOFENCE_RADIUS_IN_METERS = 500F
 
+
     init{
         initGeofences(alarmList)
         this.geofencingClient = LocationServices.getGeofencingClient(context)

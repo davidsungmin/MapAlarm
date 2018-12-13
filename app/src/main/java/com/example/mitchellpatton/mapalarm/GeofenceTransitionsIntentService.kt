@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
+import android.media.RingtoneManager
 import android.os.Build
 import android.support.annotation.RequiresApi
 import android.widget.Toast
@@ -22,6 +23,9 @@ class GeofenceTransitionsIntentService : IntentService("name") {
 
     private lateinit var notificationManager: NotificationManager
 
+    companion object{
+        val KEY_PLAY_AUDIO = "KEY_PLAY_AUDIO"
+    }
 
     override fun onHandleIntent(intent: Intent?) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
@@ -49,8 +53,12 @@ class GeofenceTransitionsIntentService : IntentService("name") {
 
             val myAddress = addrs!![0].getAddressLine(0)
 
+            val myIntent = Intent().setClass(this@GeofenceTransitionsIntentService,
+                    ListActivity::class.java)
+            myIntent.putExtra(KEY_PLAY_AUDIO, myAddress)
+            startActivity(myIntent)
 
-            Toast.makeText(this, myAddress, Toast.LENGTH_LONG).show()
+
 
         } else {
             // Log the error.

@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
+import android.media.RingtoneManager
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
@@ -50,7 +51,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     private lateinit var alarmList: List<Alarm>
 
     private lateinit var geofenceAdapter: GeofenceAdapter
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,6 +109,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         if (requestCode == PLACE_PICKER_REQUEST) {
             if (resultCode == RESULT_OK) {
+                btnConfirm.isEnabled = true
                 val place = PlaceAutocomplete.getPlace(this, data)
                 var addressText = place.name.toString()
                 addressText += "\n" + place.address.toString()
@@ -120,12 +121,21 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                         .icon(bluePin)
                 val marker = mMap.addMarker(markerOpt)
 
+                if (clickedPin.title == "Unconfirmed"){
+                    clickedPin.remove()
+                }
+
                 clickedPin = marker
 
-                val newMarker = mMap.addMarker(markerOpt)
-                clickedPin = newMarker
+                if (clickedPin.title == "Confirmed"){
+                    btnConfirm.isEnabled = false
+                }
 
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(place.latLng))
+                marker.isDraggable = true
+
+                //moves the camera slowly
+                //more camera stuff in the slides/ dem
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(clickedPin.position))
 
             }
         }
