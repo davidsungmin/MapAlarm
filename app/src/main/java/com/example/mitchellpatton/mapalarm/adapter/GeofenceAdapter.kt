@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import com.example.mitchellpatton.mapalarm.GeofenceTransitionsIntentService
+import com.example.mitchellpatton.mapalarm.R
 import com.example.mitchellpatton.mapalarm.data.Alarm
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
@@ -56,7 +57,7 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
             if(geofenceList.size != 0) {
                 geofencingClient.addGeofences(getGeofencingRequest(), geofencePendingIntent).run {
                     addOnSuccessListener {
-                        Toast.makeText(context, "Successful add", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, context.getString(R.string.successful_add), Toast.LENGTH_LONG).show()
                     }
                     addOnFailureListener {
                         Toast.makeText(context, it.message, Toast.LENGTH_LONG).show()
@@ -89,10 +90,10 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
     fun removeGeofence(requestId: String){
         geofencingClient.removeGeofences(mutableListOf(requestId))?.run {
             addOnSuccessListener {
-                Toast.makeText(context,"Successfully removed geofence", Toast.LENGTH_LONG).show()
+                Toast.makeText(context,context.getString(R.string.successful_removal), Toast.LENGTH_LONG).show()
             }
             addOnFailureListener {
-                Toast.makeText(context,"Sadboi hours", Toast.LENGTH_LONG).show()
+                Toast.makeText(context,context.getString(R.string.sad), Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -101,10 +102,10 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
         geofencingClient.removeGeofences(geofenceList)
         geofencingClient.removeGeofences(geofenceList).run{
             addOnSuccessListener {
-                Toast.makeText(context,"Successfully removed geofence", Toast.LENGTH_LONG).show()
+                Toast.makeText(context,context.getString(R.string.successful_removal), Toast.LENGTH_LONG).show()
             }
             addOnFailureListener {
-                Toast.makeText(context,"Sadboi hours", Toast.LENGTH_LONG).show()
+                Toast.makeText(context,context.getString(R.string.sad), Toast.LENGTH_LONG).show()
             }
         }
     }

@@ -2,4 +2,18 @@
     <string name="app_name">MapAlarm</string>
     <string name="title_activity_main">Map</string>
     <string name="title_activity_maps">Map</string>
+    <string name="unconfirmed">Unconfirmed</string>
+    <string name="confirmed">Confirmed</string>
+    <string name="select_marker">Please select a marker</string>
+    <string name="no_address">No Address found</string>
+    <string name="null_message">None found</string>
+    <string name="duplicate_alarm">An alarm already exists at this location</string>
+    <string name="error">Error</string>
+    <string name="example_notification">Example Notification</string>
+    <string name="example_context">This is an  example notification.</string>
+    <string name="mitchellpatton_mapalarm">com.example.mitchellpatton.mapalarm</string>
+    <string name="display_address">You are at:</string>
+    <string name="successful_add">Successful add</string>
+    <string name="successful_removal">Successfully removed geofence</string>
+    <string name="sad">Sadboi hours</string>
 </resources>

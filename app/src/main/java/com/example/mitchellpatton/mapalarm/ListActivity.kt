@@ -46,7 +46,7 @@ class ListActivity : AppCompatActivity() {
         if (intent.hasExtra(KEY_PLAY_AUDIO) && !sound.isPlaying){
             btnStopAlarm.visibility = View.VISIBLE
             sound.play()
-            Toast.makeText(this@ListActivity, "You are at: " + intent.getStringExtra(KEY_PLAY_AUDIO), Toast.LENGTH_LONG)
+            Toast.makeText(this@ListActivity, getString(R.string.display_address) + intent.getStringExtra(KEY_PLAY_AUDIO), Toast.LENGTH_LONG)
         }
 
         markersToDelete = ArrayList()

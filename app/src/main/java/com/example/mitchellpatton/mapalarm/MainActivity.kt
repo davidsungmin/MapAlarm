@@ -1,14 +1,10 @@
 package com.example.mitchellpatton.mapalarm
 
-import android.Manifest
-import android.app.PendingIntent
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
 import android.os.Bundle
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Toast
@@ -19,10 +15,6 @@ import com.example.mitchellpatton.mapalarm.data.AppDatabase
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
 
-import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingClient
-import com.google.android.gms.location.GeofencingRequest
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.ui.PlaceAutocomplete
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -111,6 +103,8 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         if (requestCode == PLACE_PICKER_REQUEST) {
             if (resultCode == RESULT_OK) {
                 btnConfirm.isEnabled = true
+                etNote.setText("")
+                etNote.visibility = View.VISIBLE
 
                 val place = PlaceAutocomplete.getPlace(this, data)
                 var addressText = place.name.toString()
@@ -119,25 +113,24 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
                 val markerOpt = MarkerOptions()
                         .position(place.latLng)
-                        .title("Unconfirmed")
+                        .title(getString(R.string.unconfirmed))
                         .draggable(true)
                         .icon(bluePin)
                 val marker = mMap.addMarker(markerOpt)
 
-                if (clickedPin.title == "Unconfirmed"){
+                if (clickedPin.title == getString(R.string.unconfirmed)){
                     clickedPin.remove()
                 }
 
                 clickedPin = marker
 
-                if (clickedPin.title == "Confirmed"){
+                if (clickedPin.title == getString(R.string.confirmed)){
                     btnConfirm.isEnabled = false
                 }
 
                 marker.isDraggable = true
 
-                //moves the camera slowly
-                //more camera stuff in the slides/ dem
+
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(clickedPin.position))
 
             }
@@ -193,9 +186,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }.start()
 
         // Add a marker in Hungary and move the camera
-        val hungary = LatLng(47.4979, 19.0402)
-        clickedPin = mMap.addMarker(MarkerOptions().position(hungary).icon(bluePin).title("Unconfirmed"))
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(hungary))
+        setInitialView()
 
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isZoomControlsEnabled = true
@@ -203,64 +194,73 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         //"it" represents lat long where we clicked
         mMap.setOnMapClickListener{
-
-            btnConfirm.isEnabled = true
-            etNote.setText("")
-            val markerOpt = MarkerOptions()
-                    .position(it)
-                    .title("Unconfirmed")
-                    .icon(bluePin)
-            val marker = mMap.addMarker(markerOpt)
-
-            if (clickedPin.title == "Unconfirmed"){
-                clickedPin.remove()
-            }
-
-            clickedPin = marker
-
-            if (clickedPin.title == "Confirmed"){
-                btnConfirm.isEnabled = false
-            }
-
-            marker.isDraggable = true
-
-            //moves the camera slowly
-            //more camera stuff in the slides/ dem
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(it))
-            //mMap.clear()
-
+            mapClick(it)
         }
 
 
-        //must be declared globally
-        //not indivdually
-        //it represents the marker that was clicked
         mMap.setOnMarkerClickListener {
-            //it.title
-            //it.remove()
-            //it.position
-            //it.setIcon()
-            btnConfirm.isEnabled=true
-
-            if (clickedPin.title == "Unconfirmed" && clickedPin!= it){
-                clickedPin.remove()
-            }
-
-            clickedPin = it
-
-            etNote.setText("")
-
-            etNote.visibility = View.VISIBLE
-            if(it.title=="Confirmed"){
-                btnConfirm.isEnabled = false
-                Toast.makeText(this@MainActivity, "An alarm already exists at this location", Toast.LENGTH_LONG)
-            }
-
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(it.position))
-
+            markerClick(it)
             true
         }
 
+    }
+
+    private fun mapClick(it: LatLng) {
+        btnConfirm.isEnabled = true
+        etNote.setText("")
+        etNote.visibility = View.VISIBLE
+
+        val markerOpt = MarkerOptions()
+                .position(it)
+                .title(getString(R.string.unconfirmed))
+                .icon(bluePin)
+        val marker = mMap.addMarker(markerOpt)
+
+        if (clickedPin.title == getString(R.string.unconfirmed)) {
+            clickedPin.remove()
+        }
+
+        clickedPin = marker
+
+        if (clickedPin.title == getString(R.string.confirmed)) {
+            btnConfirm.isEnabled = false
+        }
+
+        marker.isDraggable = true
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(it))
+    }
+
+    private fun markerClick(it: Marker) {
+        etNote.visibility = View.VISIBLE
+        btnConfirm.isEnabled = true
+
+        if (clickedPin.title == getString(R.string.unconfirmed) && clickedPin != it) {
+            clickedPin.remove()
+        }
+
+        clickedPin = it
+
+        etNote.setText("")
+
+        if (it.title == getString(R.string.confirmed)) {
+            btnConfirm.isEnabled = false
+            Toast.makeText(this@MainActivity, getString(R.string.duplicate_alarm), Toast.LENGTH_LONG)
+        }
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(it.position))
+    }
+
+    fun setInitialView(){
+        val hungary = LatLng(47.4979, 19.0402)
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(hungary))
+        clickedPin = mMap.addMarker(MarkerOptions().position(hungary)
+                .icon(bluePin)
+                .title(getString(R.string.unconfirmed)))
+        clickedPin.isVisible = false
+        btnConfirm.isEnabled = false
+        etNote.visibility = View.INVISIBLE
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(hungary))
     }
 
     private fun loadPlaceAutoComplete() {
@@ -294,7 +294,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         var errorMessage = ""
 
         if (clickedPin == null){
-            Toast.makeText(this,"Please select a marker", Toast.LENGTH_LONG).show()
+            Toast.makeText(this,getString(R.string.select_marker), Toast.LENGTH_LONG).show()
         }
         else {
             val alarmLat = clickedPin.position.latitude
@@ -305,9 +305,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                     gc.getFromLocation(alarmLat, alarmLong, 1)
 
             if (addrs!!.isEmpty()) {
-                errorMessage = "No Address found"
+                errorMessage = getString(R.string.no_address)
                 Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
-                alarmAddress = "None found"
+                alarmAddress = getString(R.string.null_message)
 
             } else {
                 alarmAddress = addrs[0].getAddressLine(0)
@@ -321,7 +321,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                     newAlarm
             )
             clickedPin.setIcon(redPin)
-            clickedPin.title = "Confirmed"
+            clickedPin.title = getString(R.string.confirmed)
 
             geofenceAdapter.addGeofence(newAlarm)
 

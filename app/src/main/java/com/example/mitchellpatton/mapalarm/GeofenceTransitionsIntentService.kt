@@ -32,7 +32,7 @@ class GeofenceTransitionsIntentService : IntentService("name") {
     override fun onHandleIntent(intent: Intent?) {
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
         if (geofencingEvent.hasError()) {
-            val errorMessage = "error"
+            val errorMessage = getString(R.string.error)
             return
         }
 
@@ -63,7 +63,7 @@ class GeofenceTransitionsIntentService : IntentService("name") {
 
         } else {
             // Log the error.
-            Toast.makeText(this, "Error", Toast.LENGTH_LONG ).show()
+            Toast.makeText(this, getString(R.string.error), Toast.LENGTH_LONG ).show()
         }
 
         notificationManager =
@@ -74,12 +74,12 @@ class GeofenceTransitionsIntentService : IntentService("name") {
     @RequiresApi(Build.VERSION_CODES.O)
     fun sendNotification() {
 
-        val channelID = "com.example.deeshlee.mapalarm"
+        val channelID = getString(R.string.mitchellpatton_mapalarm)
 
         val notification = Notification.Builder(this@GeofenceTransitionsIntentService,
                 channelID)
-                .setContentTitle("Example Notification")
-                .setContentText("This is an  example notification.")
+                .setContentTitle(getString(R.string.example_notification))
+                .setContentText(getString(R.string.example_context))
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
                 .setChannelId(channelID)
                 .build()
