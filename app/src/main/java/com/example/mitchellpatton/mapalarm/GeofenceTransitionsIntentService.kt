@@ -16,6 +16,7 @@ import android.widget.Toast
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 import java.util.*
+import kotlin.coroutines.experimental.ContinuationInterceptor
 
 class GeofenceTransitionsIntentService : IntentService("name") {
 
@@ -25,6 +26,7 @@ class GeofenceTransitionsIntentService : IntentService("name") {
 
     companion object{
         val KEY_PLAY_AUDIO = "KEY_PLAY_AUDIO"
+        val KEY_ALARM = "KEY_ALARM"
     }
 
     override fun onHandleIntent(intent: Intent?) {
@@ -40,11 +42,9 @@ class GeofenceTransitionsIntentService : IntentService("name") {
         // Test that the reported transition was of interest.
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER ||
                 geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT ||
-                geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL){
+                geofenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
 
             triggeredList = geofencingEvent.triggeringGeofences
-
-
 
             val location = geofencingEvent.triggeringLocation
             val gc = Geocoder(this, Locale.getDefault())
@@ -53,11 +53,12 @@ class GeofenceTransitionsIntentService : IntentService("name") {
 
             val myAddress = addrs!![0].getAddressLine(0)
 
+
             val myIntent = Intent().setClass(this@GeofenceTransitionsIntentService,
                     ListActivity::class.java)
             myIntent.putExtra(KEY_PLAY_AUDIO, myAddress)
+            //myIntent.putExtra(KEY_ALARM, triggeredList[0].requestId.toString())
             startActivity(myIntent)
-
 
 
         } else {
@@ -83,7 +84,7 @@ class GeofenceTransitionsIntentService : IntentService("name") {
                 .setChannelId(channelID)
                 .build()
 
-        notificationManager.notify(100,notification)
+        notificationManager.notify(100, notification)
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

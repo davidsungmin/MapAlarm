@@ -18,6 +18,7 @@ import com.example.mitchellpatton.mapalarm.touch.ItemTouchHelperCallback
 import kotlinx.android.synthetic.main.activity_list.*
 import android.media.Ringtone
 import android.widget.Toast
+import com.example.mitchellpatton.mapalarm.GeofenceTransitionsIntentService.Companion.KEY_ALARM
 
 
 class ListActivity : AppCompatActivity() {
@@ -42,7 +43,7 @@ class ListActivity : AppCompatActivity() {
 
         sound = RingtoneManager.getRingtone(applicationContext, alert)
 
-        if (intent.hasExtra(KEY_PLAY_AUDIO) && sound.isPlaying){
+        if (intent.hasExtra(KEY_PLAY_AUDIO) && !sound.isPlaying){
             btnStopAlarm.visibility = View.VISIBLE
             sound.play()
             Toast.makeText(this@ListActivity, "You are at: " + intent.getStringExtra(KEY_PLAY_AUDIO), Toast.LENGTH_LONG)
@@ -51,12 +52,16 @@ class ListActivity : AppCompatActivity() {
         markersToDelete = ArrayList()
 
         btnDeleteAll.setOnClickListener {
-            deleteAll()
+            alarmAdapter.deleteAllAlarms()
         }
 
         btnStopAlarm.setOnClickListener {
             btnStopAlarm.visibility = View.GONE
             stopSound()
+//            if(intent.hasExtra(KEY_ALARM)){
+//                val markerId = intent.getStringExtra(KEY_ALARM)
+//                alarmAdapter.deleteById(markerId)
+//            }
         }
 
         val returnIntent = Intent()
@@ -93,24 +98,12 @@ class ListActivity : AppCompatActivity() {
         markersToDelete.add(markerId)
     }
 
-    fun deleteAll(){
-        Thread {
-            AppDatabase.getInstance(this@ListActivity).alarmDao().deleteAll()
-            runOnUiThread {
-                alarmAdapter.deleteAllAlarms()
-            }
-        }.start()
+    fun addAllMarkersToDelete(markerIds: MutableList<String>) {
+        markersToDelete.addAll(markerIds)
     }
 
     fun deleteGeofence(markerId: String){
         geofenceAdapter.removeGeofence(markerId)
-    }
-
-    fun deleteAllGeofence(alarmList: List<Alarm>){
-        var requestIdList = mutableListOf<String>()
-        for (alarm in alarmList) {
-            requestIdList.add(alarm.markerId)
-        }
     }
 
     override fun onStop() {
@@ -124,7 +117,8 @@ class ListActivity : AppCompatActivity() {
         }
     }
 
-
-
+    fun deleteAllGeofence(requestidList: MutableList<String>){
+        geofenceAdapter.removeAllGeofence(requestidList)
+    }
 
 }

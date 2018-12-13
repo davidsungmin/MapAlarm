@@ -20,7 +20,6 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
     var geofencingClient: GeofencingClient
     val GEOFENCE_RADIUS_IN_METERS = 500F
 
-
     init{
         initGeofences(alarmList)
         this.geofencingClient = LocationServices.getGeofencingClient(context)
@@ -100,6 +99,14 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
 
     fun removeAllGeofence(geofenceList: MutableList<String>){
         geofencingClient.removeGeofences(geofenceList)
+        geofencingClient.removeGeofences(geofenceList).run{
+            addOnSuccessListener {
+                Toast.makeText(context,"Successfully removed geofence", Toast.LENGTH_LONG).show()
+            }
+            addOnFailureListener {
+                Toast.makeText(context,"Sadboi hours", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun getGeofencingRequest(): GeofencingRequest {

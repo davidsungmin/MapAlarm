@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
-import android.media.RingtoneManager
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
@@ -19,11 +18,13 @@ import com.example.mitchellpatton.mapalarm.data.Alarm
 import com.example.mitchellpatton.mapalarm.data.AppDatabase
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
+
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.places.ui.PlaceAutocomplete
+
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -110,6 +111,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         if (requestCode == PLACE_PICKER_REQUEST) {
             if (resultCode == RESULT_OK) {
                 btnConfirm.isEnabled = true
+
                 val place = PlaceAutocomplete.getPlace(this, data)
                 var addressText = place.name.toString()
                 addressText += "\n" + place.address.toString()
@@ -117,6 +119,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
                 val markerOpt = MarkerOptions()
                         .position(place.latLng)
+                        .title("Unconfirmed")
                         .draggable(true)
                         .icon(bluePin)
                 val marker = mMap.addMarker(markerOpt)
@@ -165,7 +168,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
     override fun onNewLocation(location: Location) {
-//        tvAddress.text = "Loc: ${location.latitude}, ${location.longitude}"
+
     }
 
 
@@ -200,6 +203,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         //"it" represents lat long where we clicked
         mMap.setOnMapClickListener{
+
             btnConfirm.isEnabled = true
             etNote.setText("")
             val markerOpt = MarkerOptions()
@@ -244,7 +248,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
             clickedPin = it
 
-           // etNote.text = it.id
             etNote.setText("")
 
             etNote.visibility = View.VISIBLE
@@ -324,7 +327,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
             btnConfirm.isEnabled= false
 
-
         }
     }
 
@@ -337,8 +339,4 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         markerList[index].remove()
         markerList.removeAt(index)
     }
-
-
-
-
 }

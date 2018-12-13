@@ -1,5 +1,6 @@
 package com.example.mitchellpatton.mapalarm.adapter
 
+
 import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -11,6 +12,7 @@ import com.example.mitchellpatton.mapalarm.data.Alarm
 import com.example.mitchellpatton.mapalarm.data.AppDatabase
 import com.example.mitchellpatton.mapalarm.touch.ItemTouchHelperAdapter
 import kotlinx.android.synthetic.main.alarm_row.view.*
+import org.jetbrains.anko.runOnUiThread
 import java.util.*
 
 class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
@@ -58,6 +60,7 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
 
     private fun deleteAlarm(adapterPosition: Int) {
         Thread {
+
             (context as ListActivity).addMarkerToDelete(alarms[adapterPosition].markerId)
             AppDatabase.getInstance(
                     context).alarmDao().deleteAlarm(alarms[adapterPosition])
@@ -72,27 +75,33 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
 
     }
 
-
-    fun deleteAllAlarms() {
-        alarms.clear()
-        notifyDataSetChanged()
-
-//        val size = alarms.size - 1
-//        Thread {
-//            for (i in 0..size){
-//                (context as ListActivity).deleteAllGeofence(alarms)
-//                context.addMarkerToDelete(alarms[0].markerId)
-//                AppDatabase.getInstance(
-//                        context).alarmDao().deleteAlarm(alarms[0])
-//                alarms.removeAt(0)
-//                context.runOnUiThread {
-//                    notifyItemRemoved(0)
-//                }
-//            }
-//        }.start()
-
+    fun deleteById(markerID :String){
+        var adapterPosition = 0
+        for (alarm in alarms){
+            if (alarm.markerId == markerID){
+                adapterPosition = alarms.indexOf(alarm)
+            }
+        }
+        deleteAlarm(adapterPosition)
     }
 
+
+    fun deleteAllAlarms() {
+        var requestIdList = mutableListOf<String>()
+        for (alarm in alarms) {
+            requestIdList.add(alarm.markerId)
+        }
+        Thread {
+            (context as ListActivity).deleteAllGeofence(requestIdList)
+            context.addAllMarkersToDelete(requestIdList)
+            alarms.clear()
+            AppDatabase.getInstance(context).alarmDao().deleteAll()
+            context.runOnUiThread {
+                notifyDataSetChanged()
+            }
+        }.start()
+
+    }
 
     fun addAlarm(alarm: Alarm) {
         alarms.add(0, alarm)
