@@ -50,7 +50,8 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
     private fun startGeofenceActivity(){
         val intent = Intent(context, GeofenceTransitionsIntentService::class.java)
 
-        val geofencePendingIntent= PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val geofencePendingIntent= PendingIntent.getService(context,
+                0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {

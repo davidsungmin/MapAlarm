@@ -23,14 +23,14 @@
 
         <Button
             android:id="@+id/btnSearch"
-            android:text="Search"
+            android:text="@string/search"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content" />
 
         <Button
             android:id="@+id/btnConfirm"
-            android:text="Confirm"
+            android:text="@string/confirm"
             android:layout_height="wrap_content"
             android:layout_width="0dp"
             android:layout_weight="1" />
@@ -41,9 +41,7 @@
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Alarms"/>
-
-
+            android:text="@string/alarms"/>
 
     </LinearLayout>
 
@@ -51,7 +49,7 @@
         android:id="@+id/etNote"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Add notes for this pin"
+        android:hint="@string/add_notes"
         android:layout_gravity="center_horizontal"/>
 
 

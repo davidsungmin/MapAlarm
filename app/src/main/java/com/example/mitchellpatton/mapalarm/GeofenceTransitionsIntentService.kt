@@ -70,37 +70,4 @@ class GeofenceTransitionsIntentService : IntentService("name") {
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager;
     }
 
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun sendNotification() {
-
-        val channelID = getString(R.string.mitchellpatton_mapalarm)
-
-        val notification = Notification.Builder(this@GeofenceTransitionsIntentService,
-                channelID)
-                .setContentTitle(getString(R.string.example_notification))
-                .setContentText(getString(R.string.example_context))
-                .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setChannelId(channelID)
-                .build()
-
-        notificationManager.notify(100, notification)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun createNotificationChannel(id: String, name: String,
-                                          description: String) {
-
-        val importance = NotificationManager.IMPORTANCE_LOW
-        val channel = NotificationChannel(id, name, importance)
-
-        channel.description = description
-        channel.enableLights(true)
-        channel.lightColor = Color.RED
-        channel.enableVibration(true)
-        channel.vibrationPattern =
-                longArrayOf(100, 200, 300, 400, 500, 400, 300, 200, 400)
-        notificationManager?.createNotificationChannel(channel)
-    }
-
 }

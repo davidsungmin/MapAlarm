@@ -14,6 +14,7 @@ import com.example.mitchellpatton.mapalarm.data.Alarm
 import com.example.mitchellpatton.mapalarm.data.AppDatabase
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException
 import com.google.android.gms.common.GooglePlayServicesRepairableException
+import com.google.android.gms.location.places.Place
 
 import com.google.android.gms.location.places.ui.PlaceAutocomplete
 
@@ -49,7 +50,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
@@ -64,14 +65,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             handleAlarmCreate()
         }
 
-
         btnList.setOnClickListener{
-            val intent = Intent()
-            intent.setClass(MainActivity@this, ListActivity::class.java)
-            startActivityForResult(intent, LIST_ACTIVITY_REQUEST)
+            startListActivity()
         }
 
+    }
 
+    private fun startListActivity() {
+        val intent = Intent()
+        intent.setClass(MainActivity@ this, ListActivity::class.java)
+        startActivityForResult(intent, LIST_ACTIVITY_REQUEST)
     }
 
     fun initMarkers(alarmList: List<Alarm>){
@@ -102,39 +105,37 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         if (requestCode == PLACE_PICKER_REQUEST) {
             if (resultCode == RESULT_OK) {
-                btnConfirm.isEnabled = true
-                etNote.setText("")
-                etNote.visibility = View.VISIBLE
-
-                val place = PlaceAutocomplete.getPlace(this, data)
-                var addressText = place.name.toString()
-                addressText += "\n" + place.address.toString()
-
-
-                val markerOpt = MarkerOptions()
-                        .position(place.latLng)
-                        .title(getString(R.string.unconfirmed))
-                        .draggable(true)
-                        .icon(bluePin)
-                val marker = mMap.addMarker(markerOpt)
-
-                if (clickedPin.title == getString(R.string.unconfirmed)){
-                    clickedPin.remove()
-                }
-
-                clickedPin = marker
-
-                if (clickedPin.title == getString(R.string.confirmed)){
-                    btnConfirm.isEnabled = false
-                }
-
-                marker.isDraggable = true
-
-
-                mMap.animateCamera(CameraUpdateFactory.newLatLng(clickedPin.position))
-
+                placeSearchedPin(data)
             }
         }
+    }
+
+    private fun placeSearchedPin(data: Intent?) {
+        btnConfirm.isEnabled = true
+        etNote.setText("")
+        etNote.visibility = View.VISIBLE
+
+        val place = PlaceAutocomplete.getPlace(this, data)
+        var addressText = place.name.toString()
+        addressText += "\n" + place.address.toString()
+
+
+        val marker = placePlaceMarker(place)
+        updateClickedPin(marker)
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(clickedPin.position))
+    }
+
+    private fun placePlaceMarker(place: Place): Marker {
+        val markerOpt = MarkerOptions()
+                .position(place.latLng)
+                .title(getString(R.string.unconfirmed))
+                .draggable(true)
+                .icon(bluePin)
+        val marker = mMap.addMarker(markerOpt)
+        marker.isDraggable
+
+        return marker
     }
 
     private lateinit var myLocationProvider: MyLocationProvider
@@ -191,12 +192,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         mMap.uiSettings.isCompassEnabled = true
         mMap.uiSettings.isZoomControlsEnabled = true
 
-
         //"it" represents lat long where we clicked
         mMap.setOnMapClickListener{
             mapClick(it)
         }
-
 
         mMap.setOnMarkerClickListener {
             markerClick(it)
@@ -210,25 +209,41 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         etNote.setText("")
         etNote.visibility = View.VISIBLE
 
+        val marker = placeLatLngMarker(it)
+
+        updateClickedPin(marker)
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(it))
+    }
+
+
+    private fun updateClickedPin(marker: Marker) {
+        checkRemoveClickedPin()
+        clickedPin = marker
+        checkDisableBtnConfirm()
+    }
+
+    private fun checkDisableBtnConfirm() {
+        if (clickedPin.title == getString(R.string.confirmed)) {
+            btnConfirm.isEnabled = false
+        }
+    }
+
+    private fun checkRemoveClickedPin() {
+        if (clickedPin.title == getString(R.string.unconfirmed)) {
+            clickedPin.remove()
+        }
+    }
+
+    private fun placeLatLngMarker(it: LatLng): Marker {
         val markerOpt = MarkerOptions()
                 .position(it)
                 .title(getString(R.string.unconfirmed))
                 .icon(bluePin)
         val marker = mMap.addMarker(markerOpt)
+        marker.isDraggable
 
-        if (clickedPin.title == getString(R.string.unconfirmed)) {
-            clickedPin.remove()
-        }
-
-        clickedPin = marker
-
-        if (clickedPin.title == getString(R.string.confirmed)) {
-            btnConfirm.isEnabled = false
-        }
-
-        marker.isDraggable = true
-
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(it))
+        return marker
     }
 
     private fun markerClick(it: Marker) {
@@ -312,6 +327,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             } else {
                 alarmAddress = addrs[0].getAddressLine(0)
             }
+
             val alarmNote = etNote.text.toString()
             val newAlarm = Alarm(null, alarmLat, alarmLong, alarmAddress, alarmNote, clickedPin.id)
             clickedPin.tag = clickedPin.id

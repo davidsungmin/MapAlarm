@@ -42,7 +42,7 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
         holder.tvAddress.text = alarm.alarmAddress
         holder.tvNotes.text = alarm.alarmNote
 
-        holder.fabDelete.setOnClickListener {
+        holder.btnDelete.setOnClickListener {
             deleteAlarm(holder.adapterPosition)
         }
 
@@ -52,11 +52,9 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
     {
         val tvAddress = alarmView.tvAddress
         val tvNotes = alarmView.tvNotes
-        val fabDelete = alarmView.fabDelete
+        val btnDelete = alarmView.btnDelete
 
     }
-
-
 
     private fun deleteAlarm(adapterPosition: Int) {
         Thread {

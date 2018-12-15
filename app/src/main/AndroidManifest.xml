@@ -5,11 +5,7 @@
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
-<<<<<<< HEAD
-         location permissions for the 'MyLocation' functionality. 
-=======
          location permissions for the 'MyLocation' functionality.
->>>>>>> f234f4b2bd6fc4561b530d283e76fb07c37b2ee1
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -20,7 +16,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/alarm"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <uses-library
