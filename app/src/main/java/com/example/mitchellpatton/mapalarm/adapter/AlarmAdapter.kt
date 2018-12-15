@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.example.mitchellpatton.mapalarm.ListActivity
+import com.example.mitchellpatton.mapalarm.MainActivity
 import com.example.mitchellpatton.mapalarm.R
 import com.example.mitchellpatton.mapalarm.data.Alarm
 import com.example.mitchellpatton.mapalarm.data.AppDatabase
@@ -42,7 +43,7 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
         holder.tvAddress.text = alarm.alarmAddress
         holder.tvNotes.text = alarm.alarmNote
 
-        holder.fabDelete.setOnClickListener {
+        holder.btnDelete.setOnClickListener {
             deleteAlarm(holder.adapterPosition)
         }
 
@@ -52,7 +53,7 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
     {
         val tvAddress = alarmView.tvAddress
         val tvNotes = alarmView.tvNotes
-        val fabDelete = alarmView.fabDelete
+        val btnDelete = alarmView.btnDelete
 
     }
 
@@ -60,19 +61,17 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
 
     private fun deleteAlarm(adapterPosition: Int) {
         Thread {
-
             (context as ListActivity).addMarkerToDelete(alarms[adapterPosition].markerId)
+            //context.deleteGeofence(alarms[adapterPosition].markerId)
             AppDatabase.getInstance(
                     context).alarmDao().deleteAlarm(alarms[adapterPosition])
 
-            context.deleteGeofence(alarms[adapterPosition].markerId)
             alarms.removeAt(adapterPosition)
 
             context.runOnUiThread {
                 notifyItemRemoved(adapterPosition)
             }
         }.start()
-
     }
 
     fun deleteById(markerID :String){
@@ -82,7 +81,19 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
                 adapterPosition = alarms.indexOf(alarm)
             }
         }
-        deleteAlarm(adapterPosition)
+        Thread {
+            val alarmToDelete = alarms[adapterPosition]
+            AppDatabase.getInstance(
+                    context).alarmDao().deleteAlarm(alarmToDelete)
+
+            (context as MainActivity).deleteGeofence(markerID)
+
+            context.runOnUiThread {
+                notifyItemRemoved(adapterPosition)
+                context.delete_marker(alarmToDelete.markerId)
+            }
+            alarms.removeAt(adapterPosition)
+        }.start()
     }
 
 
@@ -92,11 +103,11 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
             requestIdList.add(alarm.markerId)
         }
         Thread {
-            (context as ListActivity).deleteAllGeofence(requestIdList)
-            context.addAllMarkersToDelete(requestIdList)
+          //  (context as ListActivity).deleteAllGeofence(requestIdList)
             alarms.clear()
             AppDatabase.getInstance(context).alarmDao().deleteAll()
             context.runOnUiThread {
+                (context as ListActivity).addAllMarkersToDelete(requestIdList)
                 notifyDataSetChanged()
             }
         }.start()

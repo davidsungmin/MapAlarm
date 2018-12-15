@@ -8,6 +8,8 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.widget.Toast
+import com.example.mitchellpatton.mapalarm.GeofenceTransitionsIntentService.Companion.KEY_ALARM
+import com.example.mitchellpatton.mapalarm.GeofenceTransitionsIntentService.Companion.KEY_PLAY_AUDIO
 import com.example.mitchellpatton.mapalarm.adapter.GeofenceAdapter
 import com.example.mitchellpatton.mapalarm.adapter.AlarmAdapter
 import com.example.mitchellpatton.mapalarm.data.Alarm
@@ -27,7 +29,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
 class MainActivity : AppCompatActivity(), OnMapReadyCallback,
-        MyLocationProvider.OnNewLocationAvailable{
+        MyLocationProvider.OnNewLocationAvailable, AlarmDialog.AlarmHandler{
 
     private lateinit var mMap: GoogleMap
     private lateinit var bluePin: BitmapDescriptor
@@ -45,6 +47,9 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
     private lateinit var geofenceAdapter: GeofenceAdapter
 
+    private var firstTime = true
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +57,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
+
         mapFragment.getMapAsync(this)
 
         btnSearch.setOnClickListener{
@@ -60,10 +66,20 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         btnConfirm.isEnabled = false
 
+//        stopService(Intent(applicationContext, GeofenceTransitionsIntentService::class.java))
+
+        Thread {
+            alarmList = AppDatabase.getInstance(this@MainActivity).alarmDao().findAllAlarms()
+
+            geofenceAdapter = GeofenceAdapter(this@MainActivity, alarmList)
+
+            alarmAdapter = AlarmAdapter(this@MainActivity, alarmList)
+        }.start()
+
+
         btnConfirm.setOnClickListener{
             handleAlarmCreate()
         }
-
 
         btnList.setOnClickListener{
             val intent = Intent()
@@ -130,11 +146,14 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
                 marker.isDraggable = true
 
-
                 mMap.animateCamera(CameraUpdateFactory.newLatLng(clickedPin.position))
 
             }
         }
+    }
+
+    override fun alarmStopped(alarm: Alarm) {
+        alarmAdapter.deleteById(alarm.markerId)
     }
 
     private lateinit var myLocationProvider: MyLocationProvider
@@ -174,13 +193,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
 
         Thread{
-            alarmList = AppDatabase.getInstance(this@MainActivity).alarmDao().findAllAlarms()
-
-            geofenceAdapter = GeofenceAdapter(this@MainActivity, alarmList)
-
-            alarmAdapter = AlarmAdapter(this@MainActivity, alarmList)
-
-            runOnUiThread{
+            while(!(::alarmList.isInitialized)){
+                //intentionally empty - waits for alarmList
+            }
+            runOnUiThread {
                 initMarkers(alarmList)
             }
         }.start()
@@ -197,12 +213,10 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             mapClick(it)
         }
 
-
         mMap.setOnMarkerClickListener {
             markerClick(it)
             true
         }
-
     }
 
     private fun mapClick(it: LatLng) {
@@ -249,6 +263,26 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
 
         mMap.animateCamera(CameraUpdateFactory.newLatLng(it.position))
+    }
+
+    override fun onResume() {
+        while(!(::alarmAdapter.isInitialized) && !(::markerList.isInitialized)) {
+            if (intent.hasExtra(KEY_PLAY_AUDIO) && intent.hasExtra(KEY_ALARM) && firstTime) {
+                firstTime = false
+                stopService(Intent(applicationContext, GeofenceTransitionsIntentService::class.java))
+                val currentAlarms = alarmAdapter.alarms
+                var alarmToPass: Alarm = alarmList[0]
+                for (alarm in currentAlarms) {
+                    if (alarm.markerId == intent.getStringExtra(KEY_ALARM)) {
+                        alarmToPass = alarm
+                    }
+                }
+                showAlarmDialog(alarmToPass)
+                alarmAdapter.deleteById(alarmToPass.markerId)
+            }
+        }
+        super.onResume()
+
     }
 
     fun setInitialView(){
@@ -312,7 +346,15 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
             } else {
                 alarmAddress = addrs[0].getAddressLine(0)
             }
-            val alarmNote = etNote.text.toString()
+
+            var alarmNote = ""
+
+            if(etNote.text.toString() == ""){
+                etNote.visibility = View.GONE
+            }
+            else {
+                alarmNote = etNote.text.toString()
+            }
             val newAlarm = Alarm(null, alarmLat, alarmLong, alarmAddress, alarmNote, clickedPin.id)
             clickedPin.tag = clickedPin.id
             markerList.add(clickedPin)
@@ -330,13 +372,32 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         }
     }
 
+    fun delete_alarm(markerId: String){
+        alarmAdapter.deleteById(markerId)
+    }
+
 
     fun delete_marker(markerId: String){
         var index = 0
-        while(markerId != markerList[index].tag){
+        while(markerId != markerList[index].tag) {
             index++
         }
         markerList[index].remove()
-        markerList.removeAt(index)
+    }
+
+    fun deleteGeofence(markerId: String){
+        geofenceAdapter.removeGeofence(markerId)
+    }
+
+
+    fun showAlarmDialog(alarm: Alarm){
+        val alarmDialog = AlarmDialog()
+
+        val bundle = Bundle()
+        bundle.putSerializable("Alarm", alarm)
+        alarmDialog.arguments = bundle
+
+        alarmDialog.show(supportFragmentManager,
+                "SHOWALARM")
     }
 }
