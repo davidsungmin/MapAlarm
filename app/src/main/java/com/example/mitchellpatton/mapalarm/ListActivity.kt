@@ -43,11 +43,8 @@ class ListActivity : AppCompatActivity() {
 
         sound = RingtoneManager.getRingtone(applicationContext, alert)
 
-        if (intent.hasExtra(KEY_PLAY_AUDIO) && !sound.isPlaying){
-            btnStopAlarm.visibility = View.VISIBLE
-            sound.play()
-            Toast.makeText(this@ListActivity, getString(R.string.display_address) + intent.getStringExtra(KEY_PLAY_AUDIO), Toast.LENGTH_LONG).show()
-        }
+   //     checkToPlayAudio()
+
 
         markersToDelete = ArrayList()
 
@@ -55,19 +52,12 @@ class ListActivity : AppCompatActivity() {
             alarmAdapter.deleteAllAlarms()
         }
 
-//        btnStopAlarm.setOnClickListener {
-//            btnStopAlarm.visibility = View.GONE
-//            stopSound()
-//            if(intent.hasExtra(KEY_ALARM)){
-//                val markerId = intent.getStringExtra(KEY_ALARM)
-//                alarmAdapter.deleteById(markerId)
-//            }
-//        }
 
         val returnIntent = Intent()
         returnIntent.putExtra("markersToDelete", markersToDelete)
         setResult(Activity.RESULT_OK,returnIntent)
     }
+
 
     private fun initRecyclerView() {
         Thread {
@@ -107,7 +97,7 @@ class ListActivity : AppCompatActivity() {
 //    }
 
     override fun onStop() {
-        stopSound()
+   //     stopSound()
         super.onStop()
     }
 

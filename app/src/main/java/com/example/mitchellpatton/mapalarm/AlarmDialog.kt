@@ -92,7 +92,7 @@ class AlarmDialog : DialogFragment() {
     private fun onPositiveButtonClick(markerId: String){
         stopSound()
         dialog.dismiss()
-       // (context as MainActivity).delete_alarm(markerId)
+        (context as MainActivity).delete_alarm(markerId)
     }
 
     fun stopSound(){

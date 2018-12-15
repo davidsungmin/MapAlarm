@@ -57,12 +57,9 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
 
     }
 
-
-
     private fun deleteAlarm(adapterPosition: Int) {
         Thread {
             (context as ListActivity).addMarkerToDelete(alarms[adapterPosition].markerId)
-            //context.deleteGeofence(alarms[adapterPosition].markerId)
             AppDatabase.getInstance(
                     context).alarmDao().deleteAlarm(alarms[adapterPosition])
 
@@ -81,19 +78,22 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
                 adapterPosition = alarms.indexOf(alarm)
             }
         }
-        Thread {
-            val alarmToDelete = alarms[adapterPosition]
-            AppDatabase.getInstance(
-                    context).alarmDao().deleteAlarm(alarmToDelete)
+        if (!alarms.isEmpty()) {
+            if (alarms[adapterPosition].markerId == markerID) {
+                Thread {
+                    val alarmToDelete = alarms[adapterPosition]
+                    AppDatabase.getInstance(
+                            context).alarmDao().deleteAlarm(alarmToDelete)
 
-            (context as MainActivity).deleteGeofence(markerID)
 
-            context.runOnUiThread {
-                notifyItemRemoved(adapterPosition)
-                context.delete_marker(alarmToDelete.markerId)
+                    (context as MainActivity).runOnUiThread {
+                        notifyItemRemoved(adapterPosition)
+                        context.delete_marker(alarmToDelete.markerId)
+                    }
+                    alarms.removeAt(adapterPosition)
+                }.start()
             }
-            alarms.removeAt(adapterPosition)
-        }.start()
+        }
     }
 
 
@@ -103,7 +103,6 @@ class AlarmAdapter(val context: Context, val alarmList: List<Alarm>):
             requestIdList.add(alarm.markerId)
         }
         Thread {
-          //  (context as ListActivity).deleteAllGeofence(requestIdList)
             alarms.clear()
             AppDatabase.getInstance(context).alarmDao().deleteAll()
             context.runOnUiThread {

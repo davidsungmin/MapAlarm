@@ -66,7 +66,7 @@ class GeofenceTransitionsIntentService : IntentService("name"){
             myIntent.putExtra(KEY_PLAY_AUDIO, myAddress)
             myIntent.putExtra(KEY_ALARM, triggeredList[0].requestId.toString())
             startActivity(myIntent)
-            stopSelf()
+    //        stopSelf()
         } else {
             // Log the error.
 //            receiver.send(FAILURE, bundle)

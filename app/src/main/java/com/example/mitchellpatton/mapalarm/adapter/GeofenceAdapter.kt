@@ -19,7 +19,7 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
 
     var geofenceList = mutableListOf<Geofence>()
     var geofencingClient: GeofencingClient
-    val GEOFENCE_RADIUS_IN_METERS = 500F
+    val GEOFENCE_RADIUS_IN_METERS = 100F
 
     init{
         initGeofences(alarmList)
@@ -37,7 +37,7 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
                             alarm.alarmLong,
                             GEOFENCE_RADIUS_IN_METERS
                     )
-                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
+                    .setExpirationDuration(10000)
 
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
 
@@ -50,7 +50,8 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
     private fun startGeofenceActivity(){
         val intent = Intent(context, GeofenceTransitionsIntentService::class.java)
 
-        val geofencePendingIntent= PendingIntent.getService(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val geofencePendingIntent= PendingIntent.getService(context,
+                0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -77,7 +78,7 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
                         alarm.alarmLong,
                         GEOFENCE_RADIUS_IN_METERS
                 )
-                .setExpirationDuration(3000)
+                .setExpirationDuration(10000)
 
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)
 
@@ -97,30 +98,25 @@ class GeofenceAdapter(val context: Context, val alarmList: List<Alarm>) {
         geofenceList.remove(geofenceToDelete)
         geofencingClient.removeGeofences(mutableListOf(requestId))?.run {
             addOnSuccessListener {
-//                Toast.makeText(context, context.getString(R.string.successful_removal), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.successful_removal), Toast.LENGTH_LONG).show()
             }
             addOnFailureListener {
-//                Toast.makeText(context, context.getString(R.string.sad), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.sad), Toast.LENGTH_LONG).show()
             }
         }
-        Thread {
-            startGeofenceActivity()
-        }.start()
     }
 
-    fun removeAllGeofence(geofenceList: MutableList<String>){
-        geofencingClient.removeGeofences(geofenceList).run{
+    fun removeAllGeofence(geofenceList: MutableList<String>) {
+        geofencingClient.removeGeofences(geofenceList).run {
             addOnSuccessListener {
-                Toast.makeText(context,context.getString(R.string.successful_removal), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.successful_removal), Toast.LENGTH_LONG).show()
             }
             addOnFailureListener {
-                Toast.makeText(context,context.getString(R.string.sad), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.getString(R.string.sad), Toast.LENGTH_LONG).show()
             }
         }
         geofenceList.clear()
-        Thread {
-            startGeofenceActivity()
-        }.start()    }
+    }
 
     private fun getGeofencingRequest(): GeofencingRequest {
         return GeofencingRequest.Builder().apply {

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">MapAlarm</string>
-    <string name="title_activity_main">Map</string>
-    <string name="title_activity_maps">Map</string>
+    <string name="title_activity_main">MapAlarm</string>
+    <string name="title_activity_maps">MapAlarm</string>
     <string name="unconfirmed">Unconfirmed</string>
     <string name="confirmed">Confirmed</string>
     <string name="select_marker">Please select a marker</string>
@@ -15,5 +15,14 @@
     <string name="display_address">You are at:</string>
     <string name="successful_add">Successful add</string>
     <string name="successful_removal">Successfully removed geofence</string>
-    <string name="sad">Sadboi hours</string>
+    <string name="sad">Unsuccessful</string>
+    <string name="delete_all_alarms">Delete All Alarms</string>
+    <string name="stop_alarm">Stop Alarm</string>
+    <string name="address">Address</string>
+    <string name="notes">Notes</string>
+    <string name="x">X</string>
+    <string name="search">Search</string>
+    <string name="confirm">Confirm</string>
+    <string name="alarms">Alarms</string>
+    <string name="add_notes">Add notes for this pin</string>
 </resources>
