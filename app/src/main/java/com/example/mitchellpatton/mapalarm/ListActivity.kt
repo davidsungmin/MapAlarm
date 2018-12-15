@@ -29,8 +29,6 @@ class ListActivity : AppCompatActivity() {
 
     private lateinit var alarmList: List<Alarm>
 
-    private lateinit var geofenceAdapter: GeofenceAdapter
-
     private val alert = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
 
     private lateinit var sound : Ringtone
@@ -42,9 +40,6 @@ class ListActivity : AppCompatActivity() {
         initRecyclerView()
 
         sound = RingtoneManager.getRingtone(applicationContext, alert)
-
-   //     checkToPlayAudio()
-
 
         markersToDelete = ArrayList()
 
@@ -66,8 +61,6 @@ class ListActivity : AppCompatActivity() {
             ).alarmDao().findAllAlarms()
 
             alarmAdapter = AlarmAdapter(this@ListActivity, alarmList)
-
-           // geofenceAdapter = GeofenceAdapter(this@ListActivity, alarmList)
 
             val layoutManager = LinearLayoutManager(this)
             layoutManager.reverseLayout = true
@@ -91,24 +84,5 @@ class ListActivity : AppCompatActivity() {
     fun addAllMarkersToDelete(markerIds: MutableList<String>) {
         markersToDelete.addAll(markerIds)
     }
-
-//    fun deleteGeofence(markerId: String){
-//        geofenceAdapter.removeGeofence(markerId)
-//    }
-
-    override fun onStop() {
-   //     stopSound()
-        super.onStop()
-    }
-
-    fun stopSound(){
-        if (sound.isPlaying){
-            sound.stop()
-        }
-    }
-
-    //fun deleteAllGeofence(requestidList: MutableList<String>){
-    //    geofenceAdapter.removeAllGeofence(requestidList)
-    //}
 
 }

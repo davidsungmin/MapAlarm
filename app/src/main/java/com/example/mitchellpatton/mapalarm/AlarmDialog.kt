@@ -39,7 +39,7 @@ class AlarmDialog : DialogFragment() {
             alarmHandler = context
         } else {
             throw RuntimeException(
-                    "This class does not implement AlarmHandler")
+                    getString(R.string.no_implementation))
         }
         sound = RingtoneManager.getRingtone(context, alert)
     }
@@ -50,14 +50,14 @@ class AlarmDialog : DialogFragment() {
 
         val builder = AlertDialog.Builder(requireContext())
 
-        builder.setTitle("Alarm")
+        builder.setTitle(getString(R.string.alarm))
 
         val rootView = requireActivity().layoutInflater.inflate(
                 R.layout.dialog_alarm, null
         )
         tvAlarm = rootView.tvAlarm
 
-        builder.setPositiveButton("Stop Alarm"){
+        builder.setPositiveButton(getString(R.string.stop_alarm)){
             builder, which ->DialogInterface.BUTTON_POSITIVE
         }
         builder.setView(rootView)
@@ -82,11 +82,11 @@ class AlarmDialog : DialogFragment() {
 
     fun buildDialog(arguments: Bundle?, builder: AlertDialog.Builder) {
         val alarm = arguments!!.getSerializable(
-                    "Alarm"
+                    getString(R.string.alarm)
             ) as Alarm
         tvAlarm.text = getString(R.string.display_address) + alarm.alarmAddress
         markerId = alarm.markerId
-        builder.setTitle("Alarm")
+        builder.setTitle(getString(R.string.alarm))
     }
 
     private fun onPositiveButtonClick(markerId: String){
@@ -101,7 +101,4 @@ class AlarmDialog : DialogFragment() {
         }
     }
 
-//    fun onPositiveButtonClick() {
-//        (context as ListActivity).delete
-//    }
 }

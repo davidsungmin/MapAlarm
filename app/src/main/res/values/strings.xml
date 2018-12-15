@@ -25,4 +25,6 @@
     <string name="confirm">Confirm</string>
     <string name="alarms">Alarms</string>
     <string name="add_notes">Add notes for this pin</string>
+    <string name="alarm">Alarm</string>
+    <string name="no_implementation">This class does not implement AlarmHandler</string>
 </resources>
