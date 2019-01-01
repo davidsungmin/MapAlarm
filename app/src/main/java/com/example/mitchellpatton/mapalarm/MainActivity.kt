@@ -67,8 +67,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         btnConfirm.isEnabled = false
 
-//        stopService(Intent(applicationContext, GeofenceTransitionsIntentService::class.java))
-
         Thread {
             alarmList = AppDatabase.getInstance(this@MainActivity).alarmDao().findAllAlarms()
 
@@ -76,7 +74,6 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
             alarmAdapter = AlarmAdapter(this@MainActivity, alarmList)
         }.start()
-
 
         btnConfirm.setOnClickListener{
             handleAlarmCreate()
@@ -118,9 +115,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                     delete_marker(markerId)
                 }
             }
-        }
-
-        if (requestCode == PLACE_PICKER_REQUEST) {
+        } else if (requestCode == PLACE_PICKER_REQUEST) {
             if (resultCode == RESULT_OK) {
                 placeSearchedPin(data)
             }
@@ -275,12 +270,16 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
         etNote.setText("")
 
+        checkAlreadyConfirmed(it)
+
+        mMap.animateCamera(CameraUpdateFactory.newLatLng(it.position))
+    }
+
+    private fun checkAlreadyConfirmed(it: Marker) {
         if (it.title == getString(R.string.confirmed)) {
             btnConfirm.isEnabled = false
             Toast.makeText(this@MainActivity, getString(R.string.duplicate_alarm), Toast.LENGTH_LONG)
         }
-
-        mMap.animateCamera(CameraUpdateFactory.newLatLng(it.position))
     }
 
     override fun onResume() {
@@ -349,9 +348,7 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
                     gc.getFromLocation(alarmLat, alarmLong, 1)
 
             if (addrs!!.isEmpty()) {
-                errorMessage = getString(R.string.no_address)
-                Toast.makeText(this, errorMessage, Toast.LENGTH_LONG).show()
-                alarmAddress = getString(R.string.null_message)
+                alarmAddress = emptyAddress(errorMessage, alarmAddress)
 
             } else {
                 alarmAddress = addrs[0].getAddressLine(0)
@@ -359,20 +356,33 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
 
             val alarmNote = etNote.text.toString()
             val newAlarm = Alarm(null, alarmLat, alarmLong, alarmAddress, alarmNote, clickedPin.id)
-            clickedPin.tag = clickedPin.id
-            markerList.add(clickedPin)
 
             alarmCreated(
                     newAlarm
             )
-            clickedPin.setIcon(redPin)
-            clickedPin.title = getString(R.string.confirmed)
+
+            adjustClickedPin()
 
             geofenceAdapter.addGeofence(newAlarm)
 
             btnConfirm.isEnabled= false
-
         }
+    }
+
+    private fun adjustClickedPin() {
+        clickedPin.tag = clickedPin.id
+        markerList.add(clickedPin)
+        clickedPin.setIcon(redPin)
+        clickedPin.title = getString(R.string.confirmed)
+    }
+
+    private fun emptyAddress(errorMessage: String, alarmAddress: String): String {
+        var errorMessage1 = errorMessage
+        var alarmAddress1 = alarmAddress
+        errorMessage1 = getString(R.string.no_address)
+        Toast.makeText(this, errorMessage1, Toast.LENGTH_LONG).show()
+        alarmAddress1 = getString(R.string.null_message)
+        return alarmAddress1
     }
 
     fun delete_alarm(markerId: String){
@@ -388,16 +398,12 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,
         markerList[index].remove()
     }
 
-//    fun deleteGeofence(markerId: String){
-//        geofenceAdapter.removeGeofence(markerId)
-//    }
-
 
     fun showAlarmDialog(alarm: Alarm){
         val alarmDialog = AlarmDialog()
 
         val bundle = Bundle()
-        bundle.putSerializable("Alarm", alarm)
+        bundle.putSerializable(getString(R.string.alarm), alarm)
         alarmDialog.arguments = bundle
 
         alarmDialog.show(supportFragmentManager,
